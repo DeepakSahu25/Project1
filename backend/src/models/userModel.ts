@@ -42,7 +42,7 @@ userSchema.methods.matchPassword = async function (enteredPassword: string) {
 // Encrypt password before saving
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) {
-    next();
+    return;
   }
 
   const salt = await bcrypt.genSalt(10);

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../../services/api';
-import { Trash2, Check, X } from 'lucide-react';
+import { Trash2, Check } from 'lucide-react';
 
 export default function AdminMessages() {
   const queryClient = useQueryClient();
