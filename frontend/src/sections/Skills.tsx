@@ -1,18 +1,17 @@
 import { motion } from 'framer-motion';
 import FadeIn from '../components/FadeIn';
-
-const skills = [
-  { name: 'React / Next.js', level: 95, color: '#00f0ff' },
-  { name: 'TypeScript', level: 90, color: '#3178c6' },
-  { name: 'Three.js / R3F', level: 85, color: '#00f0ff' },
-  { name: 'Node.js', level: 80, color: '#68a063' },
-  { name: 'Tailwind CSS', level: 95, color: '#38bdf8' },
-  { name: 'Framer Motion', level: 90, color: '#b026ff' },
-  { name: 'GraphQL', level: 75, color: '#e10098' },
-  { name: 'Python / Django', level: 70, color: '#3776ab' },
-];
+import { useQuery } from '@tanstack/react-query';
+import api from '../services/api';
 
 export default function Skills() {
+  const { data: skills, isLoading } = useQuery({
+    queryKey: ['skills'],
+    queryFn: async () => {
+      const { data } = await api.get('/skills');
+      return data;
+    }
+  });
+
   return (
     <section id="skills" className="py-24 relative overflow-hidden bg-[var(--color-cyber-dark)]">
       {/* Decorative grid */}
@@ -33,8 +32,9 @@ export default function Skills() {
         </FadeIn>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
-          {skills.map((skill, index) => (
-            <FadeIn key={skill.name} direction={index % 2 === 0 ? "right" : "left"} delay={index * 0.1}>
+          {isLoading && <p className="text-center text-gray-400 font-mono animate-pulse col-span-2">Loading Core Competencies...</p>}
+          {skills?.map((skill: any, index: number) => (
+            <FadeIn key={skill._id} direction={index % 2 === 0 ? "right" : "left"} delay={index * 0.1}>
               <div className="glass-panel p-6 rounded-lg relative overflow-hidden group">
                 {/* Glow effect on hover */}
                 <div 

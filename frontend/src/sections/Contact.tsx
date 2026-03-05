@@ -1,7 +1,28 @@
+import { useState } from 'react';
 import FadeIn from '../components/FadeIn';
 import { Mail, MapPin, Phone, Send } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import api from '../services/api';
 
 export default function Contact() {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const sendMessage = useMutation({
+    mutationFn: async (data: typeof formData) => await api.post('/messages', data),
+    onSuccess: () => {
+      setStatus('success');
+      setFormData({ name: '', email: '', message: '' });
+      setTimeout(() => setStatus('idle'), 3000);
+    },
+    onError: () => setStatus('error'),
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    sendMessage.mutate(formData);
+  };
+
   return (
     <section id="contact" className="py-24 relative overflow-hidden bg-[var(--color-cyber-gray)]">
       {/* Dynamic scanline effect */}
@@ -62,7 +83,7 @@ export default function Contact() {
           </FadeIn>
 
           <FadeIn direction="left" delay={0.2}>
-            <form className="glass-panel p-8 rounded-lg relative overflow-hidden group">
+            <form onSubmit={handleSubmit} className="glass-panel p-8 rounded-lg relative overflow-hidden group">
               {/* Subtle background glow */}
               <div className="absolute inset-0 bg-gradient-to-br from-[rgba(0,240,255,0.05)] to-[rgba(176,38,255,0.05)] opacity-50 z-0"></div>
               
@@ -72,6 +93,9 @@ export default function Contact() {
                   <input 
                     type="text" 
                     id="name" 
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="w-full bg-[var(--color-cyber-dark)] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-[var(--color-cyber-blue)] focus:ring-1 focus:ring-[var(--color-cyber-blue)] transition-all placeholder-gray-500 font-mono"
                     placeholder="Enter your designation"
                   />
@@ -82,6 +106,9 @@ export default function Contact() {
                   <input 
                     type="email" 
                     id="email" 
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     className="w-full bg-[var(--color-cyber-dark)] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-[var(--color-cyber-purple)] focus:ring-1 focus:ring-[var(--color-cyber-purple)] transition-all placeholder-gray-500 font-mono"
                     placeholder="Provide comm-link address"
                   />
@@ -91,17 +118,24 @@ export default function Contact() {
                   <label htmlFor="message" className="block text-sm font-mono text-white mb-2 uppercase tracking-wider">Message_Payload_</label>
                   <textarea 
                     id="message" 
+                    required
                     rows={5} 
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     className="w-full bg-[var(--color-cyber-dark)] border border-gray-700 rounded px-4 py-3 text-white focus:outline-none focus:border-white focus:ring-1 focus:ring-white transition-all placeholder-gray-500 font-mono resize-none"
                     placeholder="Input data transmission here..."
                   ></textarea>
                 </div>
                 
+                {status === 'success' && <div className="text-green-400 font-mono text-center mb-4 border border-green-400/30 bg-green-400/10 py-2 rounded">Transmission Successful!</div>}
+                {status === 'error' && <div className="text-red-400 font-mono text-center mb-4 border border-red-400/30 bg-red-400/10 py-2 rounded">Transmission Failed. System Error.</div>}
+
                 <button 
-                  type="button" 
-                  className="w-full flex items-center justify-center py-4 px-6 bg-transparent border-2 border-[var(--color-cyber-blue)] text-[var(--color-cyber-blue)] font-bold rounded font-mono uppercase tracking-widest hover:bg-[rgba(0,240,255,0.1)] hover:glow-blue transition-all duration-300 gap-2 group/btn"
+                  type="submit" 
+                  disabled={sendMessage.isPending}
+                  className="w-full flex items-center justify-center py-4 px-6 bg-transparent border-2 border-[var(--color-cyber-blue)] text-[var(--color-cyber-blue)] font-bold rounded font-mono uppercase tracking-widest hover:bg-[rgba(0,240,255,0.1)] hover:glow-blue transition-all duration-300 gap-2 group/btn disabled:opacity-50"
                 >
-                  TRANSMIT <Send size={18} className="group-hover/btn:translate-x-1 transition-transform" />
+                  {sendMessage.isPending ? 'TRANSMITTING...' : 'TRANSMIT'} <Send size={18} className="group-hover/btn:translate-x-1 transition-transform" />
                 </button>
               </div>
             </form>

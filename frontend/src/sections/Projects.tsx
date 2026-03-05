@@ -1,34 +1,17 @@
 import { ExternalLink, Github } from 'lucide-react';
 import FadeIn from '../components/FadeIn';
-
-const projects = [
-  {
-    title: 'Neon E-Commerce',
-    description: 'A fully functional futuristic e-commerce platform built with Next.js, Stripe integration, and Framer Motion page transitions. Features a dark mode UI with neon accents.',
-    tech: ['Next.js', 'Tailwind', 'Stripe', 'Framer Motion'],
-    image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    links: { github: '#', live: '#' },
-    color: '#00f0ff'
-  },
-  {
-    title: 'Cyber Dashboard',
-    description: 'Real-time data visualization dashboard for server metrics. Utilizes WebSockets for live updates and D3.js for complex, animated charts in a cyberpunk theme.',
-    tech: ['React', 'D3.js', 'Socket.io', 'Node.js'],
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    links: { github: '#', live: '#' },
-    color: '#b026ff'
-  },
-  {
-    title: 'Immersive Portfolio',
-    description: 'A 3D interactive portfolio site featuring a playable character navigating through different sections representing skills and projects. Built heavily on React Three Fiber.',
-    tech: ['Three.js', 'React Three Fiber', 'Blender'],
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
-    links: { github: '#', live: '#' },
-    color: '#00f0ff'
-  }
-];
+import { useQuery } from '@tanstack/react-query';
+import api from '../services/api';
 
 export default function Projects() {
+  const { data: projects, isLoading } = useQuery({
+    queryKey: ['projects'],
+    queryFn: async () => {
+      const { data } = await api.get('/projects');
+      return data;
+    }
+  });
+
   return (
     <section id="projects" className="py-24 relative overflow-hidden bg-[var(--color-cyber-gray)]">
       {/* Background glitch effect placeholder */}
@@ -47,13 +30,15 @@ export default function Projects() {
         </FadeIn>
 
         <div className="space-y-24">
-          {projects.map((project, index) => (
-            <FadeIn key={project.title} direction={index % 2 === 0 ? "right" : "left"} delay={0.1}>
+          {isLoading && <p className="text-center text-gray-400 font-mono animate-pulse">Loading Archives...</p>}
+          
+          {projects?.map((project: any, index: number) => (
+            <FadeIn key={project._id} direction={index % 2 === 0 ? "right" : "left"} delay={0.1}>
               <div className={`flex flex-col ${index % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} items-center gap-8 lg:gap-16`}>
                 
                 {/* Project Image */}
                 <div className="w-full md:w-1/2 relative group perspective-1000">
-                  <div className={`absolute -inset-2 bg-gradient-to-r ${index % 2 === 0 ? 'from-[var(--color-cyber-blue)] to-transparent' : 'from-[var(--color-cyber-purple)] to-transparent'} rounded-lg blur opacity-20 group-hover:opacity-60 transition duration-500`}></div>
+                  <div className="absolute -inset-2 bg-gradient-to-r from-[var(--color-cyber-blue)] to-[var(--color-cyber-purple)] rounded-lg blur opacity-20 group-hover:opacity-60 transition duration-500" style={{ backgroundImage: `linear-gradient(to right, transparent, ${project.color || 'var(--color-cyber-blue)'})` }}></div>
                   
                   <div className="relative glass-panel rounded-lg overflow-hidden border border-gray-700 group-hover:border-[var(--color-cyber-blue)] transition-colors duration-300 transform group-hover:scale-[1.02]">
                     <div className="aspect-video bg-gray-900 relative">
@@ -77,19 +62,23 @@ export default function Projects() {
                     <p className="leading-relaxed text-sm md:text-base">{project.description}</p>
                   </div>
                   
-                  <ul className={`flex flex-wrap gap-4 font-mono text-xs text-[var(--color-cyber-purple)] mb-8 ${index % 2 !== 0 ? 'md:justify-end' : 'justify-start'}`}>
-                    {project.tech.map(tech => (
-                      <li key={tech} className="bg-[rgba(176,38,255,0.1)] px-2 py-1 rounded border border-[rgba(176,38,255,0.3)]">{tech}</li>
+                  <ul className={`flex flex-wrap gap-4 font-mono text-xs mb-8 ${index % 2 !== 0 ? 'md:justify-end' : 'justify-start'}`} style={{ color: project.color || 'var(--color-cyber-purple)' }}>
+                    {project.tech.map((tech: string) => (
+                      <li key={tech} className="bg-[rgba(176,38,255,0.1)] px-2 py-1 rounded border" style={{ borderColor: `${project.color}50` }}>{tech}</li>
                     ))}
                   </ul>
                   
                   <div className={`flex items-center gap-6 ${index % 2 !== 0 ? 'md:justify-end' : 'justify-start'}`}>
-                    <a href={project.links.github} className="text-gray-400 hover:text-[var(--color-cyber-blue)] transition-colors">
-                      <Github size={24} />
-                    </a>
-                    <a href={project.links.live} className="text-gray-400 hover:text-[var(--color-cyber-blue)] transition-colors">
-                      <ExternalLink size={24} />
-                    </a>
+                    {project.githubLink && (
+                      <a href={project.githubLink} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" style={{ hover: { color: project.color } } as any}>
+                        <Github size={24} />
+                      </a>
+                    )}
+                    {project.liveLink && (
+                      <a href={project.liveLink} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors" style={{ hover: { color: project.color } } as any}>
+                        <ExternalLink size={24} />
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
